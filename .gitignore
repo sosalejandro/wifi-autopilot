@@ -1,0 +1,9 @@
+/wifi-autopilot
+*.test
+coverage.out
+
+# never commit secrets
+*.age
+age.key
+config.sops.yaml
+config.yaml

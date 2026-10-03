@@ -1,0 +1,20 @@
+[Unit]
+Description=wifi-autopilot: best Wi-Fi network, exit-node failover, DNS self-repair
+Documentation=https://github.com/sosalejandro/wifi-autopilot
+Wants=NetworkManager.service
+After=NetworkManager.service tailscaled.service
+
+[Service]
+Type=simple
+# Runs as root: it writes NetworkManager profiles, manages systemd units and Tailscale prefs.
+Environment=SOPS_AGE_KEY_FILE=/etc/wifi-autopilot/age.key
+ExecStart=/usr/local/bin/wifi-autopilot -config /etc/wifi-autopilot/config.sops.yaml -state-dir /var/lib/wifi-autopilot
+Restart=always
+RestartSec=10
+StateDirectory=wifi-autopilot
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,6 @@
+# Installed as /etc/wifi-autopilot/.sops.yaml. Only passwords are encrypted, so SSIDs and
+# tuning stay readable in diffs. AGE_PUBLIC_KEY is replaced by install.sh.
+creation_rules:
+  - path_regex: config\.sops\.yaml$
+    encrypted_regex: ^password$
+    age: AGE_PUBLIC_KEY

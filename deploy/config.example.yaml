@@ -1,0 +1,57 @@
+# wifi-autopilot config. Copy to /etc/wifi-autopilot/config.sops.yaml and encrypt it:
+#   cd /etc/wifi-autopilot && sudo sops encrypt --in-place config.sops.yaml
+# Edit later with:
+#   sudo SOPS_AGE_KEY_FILE=/etc/wifi-autopilot/age.key sops edit /etc/wifi-autopilot/config.sops.yaml
+# The service reloads the file automatically when it changes. Everything except
+# `networks` is optional; the values below are the defaults.
+
+interface: wlan0
+poll_interval: 30s
+rescan_interval: 2m    # fresh radio scans cost a little latency; cached results are used in between
+min_dbm: -82           # ignore APs weaker than this
+skip_when_wired: true  # don't roam while ethernet is connected
+use_all_saved: false   # also consider every Wi-Fi profile already saved in NetworkManager
+dry_run: false
+
+# With a password (or security: open) wifi-autopilot creates and owns the NetworkManager profile.
+# Without one, it reuses a profile you already saved for that SSID.
+networks:
+  - ssid: Home_5G
+    password: change-me-please
+    weight: 1.0          # preference multiplier on the estimated throughput
+  - ssid: Home
+    password: change-me-please
+  - ssid: Office
+    password: another-secret
+    security: sae        # WPA3-only network (default: wpa-psk)
+  - ssid: Phone Hotspot
+    password: hotspot-secret
+    weight: 0.3          # metered: only when nothing else is usable
+  - ssid: Cafe Free WiFi
+    security: open
+    weight: 0.5
+
+switch:
+  min_gain_ratio: 0.25         # candidate must be 25% faster...
+  min_gain_mbps: 30            # ...and at least 30 Mbps faster
+  confirm_polls: 2             # ...on consecutive polls
+  cooldown: 5m                 # minimum time between voluntary switches
+  roam_below_dbm: -75          # leave earlier when the current signal is this weak
+  blacklist_for: 10m           # APs that connect but pass no traffic are skipped this long
+  link_failures_before_roam: 3 # polls without internet before abandoning the current AP
+  online_timeout: 25s          # how long a new AP gets to prove it has internet
+
+connectivity:
+  tcp_targets: [1.1.1.1:443, 8.8.8.8:443] # reached by IP: "internet works" regardless of DNS
+  dns_names: [google.com, cloudflare.com]
+  timeout: 5s
+
+dns_heal:
+  enabled: true
+  failures_before_heal: 2
+  heavy_cooldown: 15m  # NetworkManager/tailscaled restarts at most this often
+
+exit_node:
+  failover: true          # drop a dead Tailscale exit node and route directly
+  restore: true           # put it back once it is online again
+  restore_after_polls: 3
